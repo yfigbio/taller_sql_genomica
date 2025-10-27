@@ -1,0 +1,71 @@
+CREATE DATABASE bd_genomica;
+
+USE bd_genomica;
+
+CREATE TABLE gen(
+id_G INT PRIMARY KEY AUTO_INCREMENT,
+nombre_unico_G VARCHAR(100) UNIQUE NOT NULL,
+descripcion_G TEXT NOT NULL,
+posicion_cromosoma_G VARCHAR(20),
+posicion_inicio_G INT NOT NULL,
+posicion_fin_G INT NOT NULL,
+CHECK (posicion_fin_G >= posicion_inicio_G)
+);
+DESCRIBE gen;
+
+CREATE TABLE secuencia(
+id_S INT PRIMARY KEY AUTO_INCREMENT,
+id_gen_S INT NOT NULL,
+secuencia_ADN_S VARCHAR(1000) NOT NULL,
+	CHECK(LENGTH(secuencia_ADN_S) BETWEEN 10 AND 1000),
+tipo_S ENUM('exón' , 'intrón' , 'CDS' , 'promotor' , 'otro') NOT NULL DEFAULT 'otro',
+posicion_relativa_S INT UNSIGNED NOT NULL, 
+	CHECK(posicion_relativa_S > 0),
+FOREIGN KEY (id_gen_S)
+	REFERENCES gen(id_G)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+DESCRIBE secuencia;
+
+CREATE TABLE variante(
+id_V INT PRIMARY KEY AUTO_INCREMENT,
+id_gen_V INT NOT NULL,
+posicion_relativa_V INT UNSIGNED NOT NULL,
+	CHECK(posicion_relativa_V > 0),
+alelo_referencia_V VARCHAR(50) NOT NULL DEFAULT '-',
+alelo_mutado_V VARCHAR(50) NOT NULL DEFAULT '-',
+tipo_V ENUM('SNP' , 'inserción' , 'deleción' , 'otro') NOT NULL DEFAULT 'otro',
+FOREIGN KEY (id_gen_V)
+	REFERENCES gen(id_G)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+DESCRIBE variante; 
+
+CREATE TABLE anotacion(
+id_A INT PRIMARY KEY AUTO_INCREMENT,
+id_gen_A INT NULL,
+id_variante_A INT NULL,
+descripcion_A TEXT NOT NULL,
+tipo_A ENUM('funcional' , 'clínica' , 'otra') NOT NULL DEFAULT 'otra',
+	CHECK(id_gen_A IS NOT NULL OR id_variante_A IS NOT NULL),
+FOREIGN KEY (id_gen_A)
+	REFERENCES gen(id_G)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+FOREIGN KEY (id_variante_A)
+	REFERENCES variante(id_V)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+    );
+DESCRIBE anotacion;
+
+CREATE TABLE estudio(
+id_estudio_E INT PRIMARY KEY AUTO_INCREMENT,
+titulo_E VARCHAR(255) NOT NULL,
+fecha_publicacion_E DATE NOT NULL,
+referencia_E VARCHAR(8) UNIQUE NOT NULL,
+	CHECK(referencia_E REGEXP '^[a-zA-Z]{4}/[0-9]{3}$')
+);
+DESCRIBE estudio;
