@@ -1,7 +1,7 @@
 -- ==========================================
 -- Taller SQL Genómica
 -- Archivo: create_tables.sql
--- Descripción: Creación de tablas y restricciones
+-- Autor: Yai (@yfigbio)-- Descripción: Creación de tablas y restricciones
 -- ==========================================
 
 -- Crear base de datos (solo si no existe)
