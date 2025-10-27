@@ -1,0 +1,48 @@
+erDiagram
+    GEN {
+        int id_gen PK
+        string nombre
+        string descripcion
+        string cromosoma
+        int inicio
+        int fin
+        string hebra
+    }
+
+    SECUENCIA {
+        int id_secuencia PK
+        string cadenaADN
+        string tipo
+        int pos_relativa
+        int id_gen FK
+    }
+
+    VARIANTE {
+        int id_variante PK
+        int pos_relativa
+        string al_ref
+        string al_alt
+        string tipo
+        int id_gen FK
+    }
+
+    ANOTACION {
+        int id_anotacion PK
+        string tipo
+        string descripcion
+        int id_gen FK
+    }
+
+    ESTUDIO {
+        int id_estudio PK
+        string titulo
+        date fecha_publicacion
+        string referencia
+    }
+
+    %% Relaciones
+    GEN ||--o{ SECUENCIA : "contiene"
+    GEN ||--o{ VARIANTE : "presenta"
+    GEN ||--o{ ANOTACION : "tiene"
+    ESTUDIO }o--o{ GEN : "analiza"
+    ESTUDIO }o--o{ VARIANTE : "analiza"
