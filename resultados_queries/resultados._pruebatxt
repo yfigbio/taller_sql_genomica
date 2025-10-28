@@ -1,0 +1,160 @@
+mysql> 
+mysql> USE genomica;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> 
+mysql> SHOW TABLES;
++--------------------+
+| Tables_in_genomica |
++--------------------+
+| ANOTACION          |
+| ESTUDIO            |
+| ESTUDIO_GEN        |
+| ESTUDIO_VARIANTE   |
+| GEN                |
+| SECUENCIA          |
+| VARIANTE           |
++--------------------+
+7 rows in set (0.00 sec)
+
+mysql> 
+mysql> SELECT * FROM GEN;
++--------+--------+------------------------------------+-----------+-----------+-----------+-------+
+| id_gen | nombre | descripcion                        | cromosoma | inicio    | fin       | hebra |
++--------+--------+------------------------------------+-----------+-----------+-----------+-------+
+|      1 | BRCA1  | Gen asociado a reparación del ADN  | 17        |  43044295 |  43125482 | -     |
+|      2 | CFTR   | Canal de cloro; fibrosis quística  | 7         | 116907253 | 117095955 | +     |
+|      3 | TP53   | Supresor tumoral p53               | 17        |   7668402 |   7687550 | +     |
++--------+--------+------------------------------------+-----------+-----------+-----------+-------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM SECUENCIA;
++--------------+--------+----------------------+----------+--------------+
+| id_secuencia | id_gen | cadenaADN            | tipo     | pos_relativa |
++--------------+--------+----------------------+----------+--------------+
+|            1 |      1 | ATGCGTACGTATGCGTACGT | exon     |            1 |
+|            2 |      1 | GCTAGCTAGCTAGCTAGCTA | intron   |            2 |
+|            3 |      1 | TTGACATGACATGACATGAC | promotor |            3 |
+|            4 |      2 | ATGATGATGATGATGATGAT | CDS      |            1 |
+|            5 |      2 | CGTAGCTAGCTAGCTAGCTA | UTR      |            2 |
++--------------+--------+----------------------+----------+--------------+
+5 rows in set (0.00 sec)
+
+mysql> SELECT * FROM VARIANTE;
++-------------+--------+--------------+--------+--------+-----------+
+| id_variante | id_gen | pos_relativa | al_ref | al_alt | tipo      |
++-------------+--------+--------------+--------+--------+-----------+
+|           1 |      1 |          100 | A      | G      | SNP       |
+|           2 |      1 |          250 | C      | -      | delecion  |
+|           3 |      1 |          400 | -      | T      | insercion |
+|           4 |      2 |           50 | G      | A      | SNP       |
+|           5 |      2 |          120 | CT     | -      | delecion  |
+|           6 |      2 |          300 | -      | -      | SNP       |
++-------------+--------+--------------+--------+--------+-----------+
+6 rows in set (0.00 sec)
+
+mysql> SELECT * FROM ANOTACION;
++--------------+--------+---------+--------------------------------------------------+
+| id_anotacion | id_gen | tipo    | descripcion                                      |
++--------------+--------+---------+--------------------------------------------------+
+|            1 |      1 | funcion | Reparación del ADN por recombinación homóloga    |
+|            2 |      2 | clinica | Mutaciones asociadas a fibrosis quística         |
+|            3 |      3 | funcion | Regulación del ciclo celular y apoptosis         |
++--------------+--------+---------+--------------------------------------------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM ESTUDIO;
++------------+------------------------------+-------------------+------------+
+| id_estudio | titulo                       | fecha_publicacion | referencia |
++------------+------------------------------+-------------------+------------+
+|          1 | Estudio de reparación BRCA1  | 2021-05-12        | abcd/123   |
+|          2 | Genómica clínica CFTR        | 2022-11-03        | EFGH/007   |
+|          3 | Papel de TP53 en cáncer      | 2020-01-20        | Wxyz/999   |
++------------+------------------------------+-------------------+------------+
+3 rows in set (0.00 sec)
+
+mysql> SELECT * FROM ESTUDIO_GEN;
+Empty set (0.00 sec)
+
+mysql> SELECT * FROM ESTUDIO_VARIANTE;
+Empty set (0.00 sec)
+
+mysql> 
+mysql> -- Conteos
+mysql> SELECT COUNT(*) AS total_genes FROM GEN;
++-------------+
+| total_genes |
++-------------+
+|           3 |
++-------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT COUNT(*) AS total_secuencias FROM SECUENCIA;
++------------------+
+| total_secuencias |
++------------------+
+|                5 |
++------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT COUNT(*) AS total_variantes FROM VARIANTE;
++-----------------+
+| total_variantes |
++-----------------+
+|               6 |
++-----------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT COUNT(*) AS total_anotaciones FROM ANOTACION;
++-------------------+
+| total_anotaciones |
++-------------------+
+|                 3 |
++-------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT COUNT(*) AS total_estudios FROM ESTUDIO;
++----------------+
+| total_estudios |
++----------------+
+|              3 |
++----------------+
+1 row in set (0.01 sec)
+
+mysql> 
+mysql> -- Variantes por gen
+mysql> SELECT g.nombre, COUNT(v.id_variante) AS n_variantes
+    -> FROM GEN g
+    -> LEFT JOIN VARIANTE v ON g.id_gen = v.id_gen
+    -> GROUP BY g.id_gen
+    -> ORDER BY n_variantes DESC;
++--------+-------------+
+| nombre | n_variantes |
++--------+-------------+
+| BRCA1  |           3 |
+| CFTR   |           3 |
+| TP53   |           0 |
++--------+-------------+
+3 rows in set (0.00 sec)
+
+mysql> 
+mysql> -- Estudios ↔ genes
+mysql> SELECT e.titulo, g.nombre
+    -> FROM ESTUDIO_GEN eg
+    -> JOIN ESTUDIO e ON e.id_estudio = eg.id_estudio
+    -> JOIN GEN g ON g.id_gen = eg.id_gen
+    -> ORDER BY e.id_estudio, g.nombre;
+Empty set (0.00 sec)
+
+mysql> 
+mysql> -- Estudios ↔ variantes
+mysql> SELECT e.titulo, v.id_variante, v.tipo, v.pos_relativa
+    -> FROM ESTUDIO_VARIANTE ev
+    -> JOIN ESTUDIO e ON e.id_estudio = ev.id_estudio
+    -> JOIN VARIANTE v ON v.id_variante = ev.id_variante
+    -> ORDER BY e.id_estudio, v.id_variante;
+Empty set (0.00 sec)
+
+mysql> notee;
